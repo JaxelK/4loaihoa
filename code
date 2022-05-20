@@ -1,0 +1,86 @@
+#link data trên drive: https://drive.google.com/drive/folders/1MhoccSXjICOni3XJYeYHyVthiEZ5blL4?usp=sharing
+
+from keras.preprocessing.image import load_img, img_to_array
+from keras.models import Sequential
+from keras.layers import Dense, Activation, BatchNormalization, Dropout, Conv2D, MaxPooling2D, Flatten
+import matplotlib.pyplot as plt
+from tensorflow.keras.utils import load_img, img_to_array
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.image import imread
+from os import listdir
+from numpy import asarray
+from numpy import save
+from sklearn.model_selection import train_test_split
+
+from google.colab import drive
+drive.mount('/content/drive')
+
+
+photos, labels = list(), list()
+folder = '/content/drive/MyDrive/hocAI/cuc/'
+for file in listdir(folder):
+  if file.startswith('cuc'):
+    output = 0
+    photo = load_img(folder+file,target_size=(150,150))
+    photo = img_to_array(photo)
+    photos.append(photo)
+    labels.append(output)
+folder = '/content/drive/MyDrive/hocAI/thuocduoc/'
+for file in listdir(folder):
+  if file.startswith('thuocduoc'):
+    output = 1
+    photo = load_img(folder+file,target_size=(150,150))
+    photo = img_to_array(photo)
+    photos.append(photo)
+    labels.append(output)
+folder = '/content/drive/MyDrive/hocAI/mattroi/'
+for file in listdir(folder):
+  if file.startswith('mattroi'):
+    output = 2
+    photo = load_img(folder+file,target_size=(150,150))
+    photo = img_to_array(photo)
+    photos.append(photo)
+    labels.append(output)
+folder = '/content/drive/MyDrive/hocAI/vantho/'
+for file in listdir(folder):
+  if file.startswith('vantho'):
+    output = 3
+    photo = load_img(folder+file,target_size=(150,150))
+    photo = img_to_array(photo)
+    photos.append(photo)
+    labels.append(output)
+
+photos = asarray(photos)
+labels = asarray(labels)
+print(photos.shape,labels.shape)
+x_train,x_test,y_train,y_test=train_test_split(photos,labels,test_size=0.25,random_state=7)
+
+hoa=["cuc","thuocduoc","mattroi","vantho"]
+model = Sequential()
+model.add(Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same', input_shape=(150, 150, 3)))
+model.add(MaxPooling2D((2, 2)))
+model.add(Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'))
+model.add(MaxPooling2D((2, 2)))
+model.add(Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'))
+model.add(MaxPooling2D((2, 2)))
+model.add(Flatten())
+model.add(Dense(128, activation='relu'))
+model.add(Dense(128, activation='relu'))
+model.add(Dense(128, activation='relu'))
+model.add(Dense(4, activation='softmax'))
+model.compile(optimizer='Adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+history = model.fit(x_train, y_train,validation_data=(x_test,y_test), epochs=50, verbose=1)
+model.save('4loaihoa.h5')
+model.evaluate(photos,labels)
+img = load_img('/content/drive/MyDrive/hocAI/New folder/hoacuctest1.jpg', target_size=(150,150))
+plt.imshow(img)
+imgRe = img_to_array(img)
+imgRe = imgRe.reshape(1,150,150,3)  
+imgRe = imgRe.astype('float32')
+imgRe /= 255
+y_pred = model.predict(imgRe)
+print(y_pred)
+y_classes = [np.argmax(element) for element in y_pred]
+y_classes
+print(hoa[y_classes[0]])
